@@ -1,12 +1,17 @@
 const rssUrl = "https://nitter.net/i/lists/1913413447737647534/rss";
-const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`;
+const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
 const feedContainer = document.getElementById("feed");
 
 fetch(proxyUrl)
-  .then(response => response.text())
-  .then(xmlText => {
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json();
+  })
+  .then(data => {
     const parser = new DOMParser();
-    const xml = parser.parseFromString(xmlText, "application/xml");
+    const xml = parser.parseFromString(data.contents, "application/xml");
     const items = xml.querySelectorAll("item");
 
     if (!items.length) {
@@ -25,6 +30,6 @@ fetch(proxyUrl)
     });
   })
   .catch(error => {
-    console.error("Error fetching the feed:", error);
+    console.error("Error fetching feed:", error);
     feedContainer.innerHTML = `<li>⚠️ Failed to fetch tweets.</li>`;
   });
