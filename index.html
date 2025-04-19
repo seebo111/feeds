@@ -5,12 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Twitter List Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>My Twitter List Tracker</h1>
-        <div id="tweets"></div>
+    <div class="twitter-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar-left">
+            <div class="twitter-logo">
+                <i class="fab fa-twitter"></i>
+            </div>
+            <nav>
+                <a href="#" class="active"><i class="fas fa-home"></i> Home</a>
+                <a href="#"><i class="fas fa-hashtag"></i> Explore</a>
+                <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+                <a href="#"><i class="fas fa-envelope"></i> Messages</a>
+                <a href="#"><i class="fas fa-bookmark"></i> Bookmarks</a>
+                <a href="#"><i class="fas fa-list"></i> Lists</a>
+                <a href="#"><i class="fas fa-user"></i> Profile</a>
+                <a href="#"><i class="fas fa-ellipsis-h"></i> More</a>
+            </nav>
+            <button class="tweet-button">Tweet</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Home</h1>
+                <i class="fas fa-star"></i>
+            </div>
+            
+            <div class="tweet-box">
+                <div class="tweet-input">
+                    <img src="https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png" alt="Profile" class="profile-pic">
+                    <input type="text" placeholder="What's happening?">
+                </div>
+                <div class="tweet-actions">
+                    <div class="actions-left">
+                        <i class="fas fa-image"></i>
+                        <i class="fas fa-poll"></i>
+                        <i class="fas fa-smile"></i>
+                        <i class="fas fa-calendar-alt"></i>
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <button class="tweet-submit">Tweet</button>
+                </div>
+            </div>
+
+            <div id="tweets" class="tweets-container"></div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar-right">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search Twitter">
+            </div>
+            <div class="trends">
+                <h2>What's happening</h2>
+                <!-- Trends would go here -->
+            </div>
+            <div class="who-to-follow">
+                <h2>Who to follow</h2>
+                <!-- Suggestions would go here -->
+            </div>
+        </div>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
