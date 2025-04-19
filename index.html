@@ -1,77 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crypto Twitter Feed</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
-      padding: 2rem;
-    }
-    h1 {
-      font-size: 1.5rem;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: #161b22;
-      margin: 1rem 0;
-      padding: 1rem;
-      border-radius: 8px;
-    }
-    a {
-      color: #58a6ff;
-      text-decoration: none;
-    }
-    small {
-      color: #8b949e;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Twitter Feed</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Crypto Twitter Feed</h1>
-  <ul id="feed">
-    <li>Loading tweets...</li>
-  </ul>
-
-  <script>
-    const rssUrl = "https://nitter.privacydev.net/i/lists/1913413447737647534/rss";
-    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`;
-    const feedContainer = document.getElementById("feed");
-
-    fetch(proxyUrl)
-      .then(res => res.text())
-      .then(str => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(str, "application/xml");
-        const items = xml.querySelectorAll("item");
-
-        feedContainer.innerHTML = "";
-
-        if (!items.length) {
-          feedContainer.innerHTML = "<li>No tweets found.</li>";
-          return;
-        }
-
-        items.forEach(item => {
-          const title = item.querySelector("title")?.textContent || "";
-          const link = item.querySelector("link")?.textContent || "#";
-          const pubDate = item.querySelector("pubDate")?.textContent || "";
-
-          const li = document.createElement("li");
-          li.innerHTML = `<a href="${link}" target="_blank">${title}</a><br><small>${pubDate}</small>`;
-          feedContainer.appendChild(li);
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching feed:", error);
-        feedContainer.innerHTML = "<li>⚠️ Failed to load tweets.</li>";
-      });
-  </script>
+    <div class="container">
+        <h1>Crypto Twitter Feed</h1>
+        <div id="tweets-container">
+            <p>Loading Tweets...</p>
+        </div>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html>
