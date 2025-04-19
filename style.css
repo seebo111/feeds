@@ -1,36 +1,23 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
-  margin: 0;
-  padding: 0;
-}
-
-#feed-container {
-  width: 80%;
-  margin: 0 auto;
+  background-color: #111;
+  color: #fff;
   padding: 20px;
 }
-
 h1 {
-  color: #333;
-  text-align: center;
+  font-size: 24px;
 }
-
 ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
-
 li {
-  background: #fff;
+  background: #222;
   margin: 10px 0;
-  padding: 10px;
+  padding: 15px;
   border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
 a {
-  color: #1DA1F2;
+  color: #1da1f2;
   text-decoration: none;
 }
