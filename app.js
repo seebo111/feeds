@@ -1,17 +1,12 @@
-const rssUrl = "https://nitter.privacydev.net/i/lists/1913413447737647534/rss";
-const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+const rssUrl = "https://nitter.poast.org/i/lists/1913413447737647534/rss";
+const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`;
 const feedContainer = document.getElementById("feed");
 
 fetch(proxyUrl)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    return response.json();
-  })
-  .then(data => {
+  .then(res => res.text())
+  .then(str => {
     const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, "application/xml");
+    const xml = parser.parseFromString(str, "application/xml");
     const items = xml.querySelectorAll("item");
 
     feedContainer.innerHTML = "";
@@ -22,9 +17,9 @@ fetch(proxyUrl)
     }
 
     items.forEach(item => {
-      const title = item.querySelector("title").textContent;
-      const link = item.querySelector("link").textContent;
-      const pubDate = item.querySelector("pubDate").textContent;
+      const title = item.querySelector("title")?.textContent || "";
+      const link = item.querySelector("link")?.textContent || "#";
+      const pubDate = item.querySelector("pubDate")?.textContent || "";
 
       const li = document.createElement("li");
       li.innerHTML = `<a href="${link}" target="_blank">${title}</a><br><small>${pubDate}</small>`;
