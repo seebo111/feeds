@@ -1,4 +1,4 @@
-const rssUrl = "https://nitter.net/i/lists/1913413447737647534/rss";
+const rssUrl = "https://nitter.privacydev.net/i/lists/1913413447737647534/rss";
 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
 const feedContainer = document.getElementById("feed");
 
@@ -13,6 +13,8 @@ fetch(proxyUrl)
     const parser = new DOMParser();
     const xml = parser.parseFromString(data.contents, "application/xml");
     const items = xml.querySelectorAll("item");
+
+    feedContainer.innerHTML = "";
 
     if (!items.length) {
       feedContainer.innerHTML = "<li>No tweets found.</li>";
