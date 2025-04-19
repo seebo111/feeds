@@ -1,31 +1,21 @@
-// Feed URL from Nitter
-const feedUrl = 'https://nitter.poast.org/i/lists/1913413447737647534/rss';
+const feedUrl = "https://nitter.poast.org/i/lists/1913413447737647534/rss";
+const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
 
-async function fetchFeed() {
-  try {
-    // Use fetch API to get feed data
-    const res = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(feedUrl)}`);
-    const data = await res.json();
-    
-    if (data && data.items) {
-      const feedList = document.getElementById('feed-list');
-      data.items.forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <strong><a href="${item.link}" target="_blank">${item.title}</a></strong>
-          <p>${item.description}</p>
-          <small>Posted on: ${new Date(item.pubDate).toLocaleString()}</small>
-        `;
-        feedList.appendChild(li);
-      });
+const feedContainer = document.getElementById("feed");
+
+fetch(apiUrl)
+  .then(response => response.json())
+  .then(data => {
+    if (!data.items || data.items.length === 0) {
+      feedContainer.innerHTML = "<li>No tweets found.</li>";
+      return;
     }
-  } catch (error) {
-    console.error("Error fetching the feed:", error);
-  }
-}
-
-// Fetch the feed when the page loads
-fetchFeed();
-
-// Optionally, update the feed every 10 minutes
-setInterval(fetchFeed, 600000);
+    data.items.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${item.link}" target="_blank">${item.title}</a><br><small>${item.pubDate}</small>`;
+      feedContainer.appendChild(li);
+    });
+  })
+  .catch(error => {
+    feedContainer.innerHTML = `<li>Error fetching the feed: ${error}</li>`;
+  });
