@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Crypto Twitter Feed</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 20px;
+    }
+    h1 {
+      color: #00ffaa;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 15px 0;
+      background: #222;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    a {
+      color: #00ccff;
+      text-decoration: none;
+    }
+    small {
+      color: #888;
+    }
+  </style>
 </head>
 <body>
-  <h1>📉 Crypto Twitter Feed</h1>
-  <ul id="feed"></ul>
-
+  <h1>🪙 Crypto Twitter Feed</h1>
+  <ul id="feed">
+    <li>Loading feed...</li>
+  </ul>
   <script src="app.js"></script>
 </body>
 </html>
