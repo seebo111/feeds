@@ -1,42 +1,47 @@
-// RSS URL of your Twitter List
-const rssUrl = "https://nitter.poast.org/i/lists/1913413447737647534/rss";
+// Replace with your Nitter RSS URL
+const RSS_URL = "https://nitter.poast.org/i/lists/1913413447737647534/rss";
 
-// Proxy URL to avoid CORS issues
-const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(rssUrl);
-
-fetch(proxyUrl)
-  .then(res => res.json()) // Use .json() for AllOrigins response
-  .then(data => {
+// Fetch RSS feed and display tweets
+async function fetchTweets() {
+  try {
+    // Use a proxy to avoid CORS issues (example: https://corsproxy.io/)
+    const proxy = "https://api.corsproxy.io/?url=";
+    const response = await fetch(proxy + encodeURIComponent(RSS_URL));
+    const text = await response.text();
     const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, "application/xml");
-    const items = xml.querySelectorAll("item");
+    const xmlDoc = parser.parseFromString(text, "text/xml");
 
-    const tweetsContainer = document.getElementById("tweets-container");
-    tweetsContainer.innerHTML = ""; // Clear the "Loading Tweets..." text
-
-    if (items.length === 0) {
-      tweetsContainer.innerHTML = "<p>No tweets found</p>";
-      return;
-    }
+    // Parse XML data
+    const items = xmlDoc.querySelectorAll("item");
+    const tweetsContainer = document.getElementById("tweets");
+    tweetsContainer.innerHTML = ""; // Clear previous content
 
     items.forEach(item => {
       const title = item.querySelector("title").textContent;
-      const description = item.querySelector("description").textContent;
       const link = item.querySelector("link").textContent;
+      const description = item.querySelector("description").textContent;
+      const pubDate = item.querySelector("pubDate").textContent;
 
-      // Create HTML elements dynamically for each tweet
-      const tweetElement = document.createElement("div");
-      tweetElement.classList.add("tweet");
-
-      tweetElement.innerHTML = `
-        <h3><a href="${link}" target="_blank">${title}</a></h3>
-        <p>${description}</p>
+      // Create tweet HTML element
+      const tweetDiv = document.createElement("div");
+      tweetDiv.className = "tweet";
+      tweetDiv.innerHTML = `
+        <p class="tweet-content">${description}</p>
+        <div class="tweet-footer">
+          <a href="${link}" target="_blank" class="tweet-link">View Tweet</a>
+          <span class="tweet-date">${pubDate}</span>
+        </div>
       `;
 
-      tweetsContainer.appendChild(tweetElement);
+      tweetsContainer.appendChild(tweetDiv);
     });
-  })
-  .catch(error => {
-    console.error("Error fetching the feed:", error);
-    document.getElementById("tweets-container").innerHTML = "<p>Failed to load tweets.</p>";
-  });
+  } catch (error) {
+    console.error("Error fetching tweets:", error);
+  }
+}
+
+// Initial fetch
+fetchTweets();
+
+// Refresh every 5 minutes (optional)
+setInterval(fetchTweets, 300000);
