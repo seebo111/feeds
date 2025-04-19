@@ -1,56 +1,110 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Configuration
     const CONFIG = {
-        nitterInstances: [
+        instances: [
             "https://nitter.net",
-            "https://nitter.poast.org",
-            "https://nitter.it"
+            "https://nitter.it",
+            "https://nitter.unixfox.eu",
+            "https://nitter.poast.org"
         ],
         listId: "1913413447737647534",
         refreshInterval: 30000, // 30 seconds
-        maxRetries: 3
+        maxRetries: 2
     };
 
     // DOM Elements
     const tweetsContainer = document.getElementById("tweets");
+    const refreshButton = document.getElementById("refresh-button");
+    const statusElement = document.getElementById("connection-status");
     let currentInstanceIndex = 0;
+    let retryCount = 0;
     let refreshTimer = null;
 
-    // Main function to fetch tweets
-    const fetchTweets = async () => {
-        clearTimeout(refreshTimer); // Clear previous timer
+    // Update connection status UI
+    function updateStatus(message, type = "info") {
+        statusElement.innerHTML = `<i class="fas fa-${type === "error" ? "exclamation-circle" : type === "success" ? "check-circle" : "circle-notch fa-spin"}"></i> ${message}`;
+        statusElement.className = type;
+    }
+
+    // Main fetch function
+    async function fetchTweets() {
+        clearTimeout(refreshTimer);
         tweetsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading tweets...</div>';
 
+        const currentInstance = CONFIG.instances[currentInstanceIndex];
+        updateStatus(`Connecting to ${new URL(currentInstance).hostname}...`);
+
         try {
-            const instance = CONFIG.nitterInstances[currentInstanceIndex];
-            const rssUrl = `${instance}/i/lists/${CONFIG.listId}/rss`;
-            
-            // Using CORS proxy
-            const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(rssUrl)}`, {
-                headers: { 'User-Agent': 'Mozilla/5.0' }
+            // Try direct fetch first
+            let response = await fetchWithTimeout(`${currentInstance}/i/lists/${CONFIG.listId}/rss`, {
+                timeout: 5000
             });
 
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            // If direct fetch fails, try with proxy
+            if (!response.ok) {
+                response = await fetchWithTimeout(`https://corsproxy.io/?${encodeURIComponent(`${currentInstance}/i/lists/${CONFIG.listId}/rss`)}`, {
+                    timeout: 5000
+                });
+            }
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const text = await response.text();
+            if (!text.includes("<rss")) throw new Error("Invalid RSS data");
+
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(text, "text/xml");
-            const items = xmlDoc.querySelectorAll("item");
+            const xml = parser.parseFromString(text, "text/xml");
+            const items = xml.querySelectorAll("item");
 
             renderTweets(items);
-            currentInstanceIndex = 0; // Reset to primary instance on success
+            updateStatus(`Connected to ${new URL(currentInstance).hostname}`, "success");
+            retryCount = 0;
 
         } catch (error) {
-            console.error("Fetch error:", error);
-            handleFetchError(error);
-        } finally {
-            // Schedule next refresh
-            refreshTimer = setTimeout(fetchTweets, CONFIG.refreshInterval);
-        }
-    };
+            console.error(`Error (${currentInstance}):`, error);
+            retryCount++;
+            
+            if (retryCount >= CONFIG.maxRetries) {
+                currentInstanceIndex = (currentInstanceIndex + 1) % CONFIG.instances.length;
+                retryCount = 0;
+            }
 
-    // Render tweets to the DOM
-    const renderTweets = (items) => {
+            if (currentInstanceIndex === 0 && retryCount === 0) {
+                updateStatus("All servers failed. Trying again...", "error");
+                tweetsContainer.innerHTML = `
+                    <div class="error">
+                        <p>Failed to connect to all servers</p>
+                        <button onclick="location.reload()">Retry</button>
+                    </div>
+                `;
+            } else {
+                updateStatus(`Retrying (${retryCount}/${CONFIG.maxRetries})...`, "error");
+                fetchTweets(); // Immediate retry
+                return;
+            }
+        }
+
+        refreshTimer = setTimeout(fetchTweets, CONFIG.refreshInterval);
+    }
+
+    // Helper function to fetch with timeout
+    async function fetchWithTimeout(url, options = {}) {
+        const { timeout = 8000 } = options;
+        
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+
+        clearTimeout(id);
+        return response;
+    }
+
+    // Render tweets to DOM
+    function renderTweets(items) {
         if (items.length === 0) {
             tweetsContainer.innerHTML = '<div class="empty">No tweets found in this list.</div>';
             return;
@@ -87,49 +141,35 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             tweetsContainer.appendChild(tweetElement);
         });
-    };
-
-    // Handle fetch errors
-    const handleFetchError = (error) => {
-        currentInstanceIndex = (currentInstanceIndex + 1) % CONFIG.nitterInstances.length;
-        
-        if (currentInstanceIndex === 0) {
-            tweetsContainer.innerHTML = `
-                <div class="error">
-                    <p>Failed to load tweets after trying all servers</p>
-                    <button onclick="location.reload()">Try Again</button>
-                </div>
-            `;
-        } else {
-            tweetsContainer.innerHTML = `
-                <div class="loading">
-                    Trying alternate server (${currentInstanceIndex + 1}/${CONFIG.nitterInstances.length})...
-                </div>
-            `;
-        }
-    };
+    }
 
     // Helper functions
-    const extractImageUrl = (html) => {
+    function extractImageUrl(html) {
         const imgMatch = html.match(/<img[^>]+src="([^">]+)"/i);
         return imgMatch ? imgMatch[1] : null;
-    };
+    }
 
-    const cleanText = (html) => {
+    function cleanText(html) {
         return html.replace(/<img[^>]*>/g, "")
                   .replace(/<[^>]+>/g, "")
                   .replace(/\s+/g, ' ')
                   .trim();
-    };
+    }
 
-    const formatTime = (dateString) => {
+    function formatTime(dateString) {
         try {
             const date = new Date(dateString);
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         } catch {
             return '';
         }
-    };
+    }
+
+    // Event listeners
+    refreshButton.addEventListener("click", () => {
+        clearTimeout(refreshTimer);
+        fetchTweets();
+    });
 
     // Initial load
     fetchTweets();
